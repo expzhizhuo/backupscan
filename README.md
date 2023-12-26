@@ -9,7 +9,7 @@ pip3 install -r requirements.txt
 ## 使用
 
 ```bash
-python3 back_scan.py -h         
+python3 backupscan.py -h         
 ```
 
 ```text
@@ -26,7 +26,7 @@ python3 back_scan.py -h
                  /_.___/\__, /    /___/_/ /_/_/ /___/_/ /_/\__,_/\____/ 
                        /____/                                           
 
-usage: back_scan.py [-h] [-u URL] [-f [URL_FILE]] [-t THREADS] [-o [OUTPUT]]
+usage: backupscan.py [-h] [-u URL] [-f [URL_FILE]] [-t THREADS] [-o [OUTPUT]]
                     [-tm [TIMEOUT]] [-d [DEBUG]]
 
 Backup Scan by zhizhuo

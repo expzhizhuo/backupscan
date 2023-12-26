@@ -1,6 +1,6 @@
 """
 @Project ：backscan
-@File    ：back_scan.py
+@File    ：backupscan.py
 @IDE     ：PyCharm
 @Author  ：zhizhuo
 @Date    ：2023/12/26 12:25
@@ -110,7 +110,7 @@ def cmd_output():
     parser.add_argument('-o', '-output', dest="output", nargs='?', type=str,
                         help='结果输出文件', required=False)
     parser.add_argument('-tm', '-timeout', dest="timeout", nargs='?', type=str,
-                        help='结果输出文件', required=False)
+                        help='设置请求超时时间，默认是10s', required=False)
     parser.add_argument('-d', '-debug', dest="debug", default="debug", nargs='?', type=str,
                         help='开启debug模式', required=False)
     url_arg = parser.parse_args().url
