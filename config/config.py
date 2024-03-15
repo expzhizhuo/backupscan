@@ -22,5 +22,5 @@ class Config(object):
                          'faisunzip', 'files', 'forum', 'home', 'html', 'index', 'joomla', 'js', 'jsp', 'local',
                          'localhost', 'master', 'media', 'members', 'my', 'mysql', 'new', 'old', 'orders', 'php',
                          'sales', 'site', 'sql', 'store', 'tar', 'test', 'user', 'users', 'vb', 'web', 'website',
-                         'wordpress', 'wp', 'www', 'wwwroot', 'root', 'log']
+                         'wordpress', 'wp', 'www', 'wwwroot', 'root', 'log', 'webapp', 'webapps', 'tomcat', 'linux']
     BACKUP_BLACK_TYPE = ['html', 'image', 'xml', 'text', 'json', 'javascript']
