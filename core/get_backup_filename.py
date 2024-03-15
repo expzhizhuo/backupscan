@@ -10,7 +10,7 @@ from poc_tool.log import log
 
 
 class GetBackupFilename(object):
-    def __init__(self, url):
+    def __init__(self, url: str):
         """
         初始化配置信息
         """

@@ -91,12 +91,16 @@ def main(url, file):
     else:
         urlfile = ['{}'.format(url)]
     log.info(f"需要扫描{len(urlfile)}个资产")
-    for url in urlfile:
-        url = tools.get_url_format(url)
-        backup_dict = GetBackupFilename(url).run()
-        for b in backup_dict:
-            scan_url = urljoin(url, b)
-            url_list.append(scan_url)
+    log.info(f"正在生成扫描字典")
+    with alive_bar(len(urlfile)) as bar:
+        for url in urlfile:
+            url = tools.get_url_format(url)
+            backup_dict = GetBackupFilename(url).run()
+            for b in backup_dict:
+                scan_url = urljoin(url, b)
+                url_list.append(scan_url)
+            bar()
+    log.info(f"扫描资产生成完成")
     log.info(f"产生任务{len(url_list)}个")
     loop = asyncio.get_event_loop()
     result = loop.run_until_complete(scan(url_list=url_list))
