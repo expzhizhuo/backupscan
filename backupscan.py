@@ -6,7 +6,6 @@
 @Date    ：2023/12/26 12:25
 """
 import time
-from typing import Dict, Any
 from urllib.parse import urljoin
 import asyncio
 from poc_tool.tools import tools
@@ -17,7 +16,6 @@ from poc_tool.log import log, LOGGER, LoggingLevel
 from core.backup_requests import BackupRequests
 from core.output import Output
 from core.get_backup_filename import GetBackupFilename
-from concurrent.futures import ThreadPoolExecutor, as_completed
 from pyfiglet import Figlet
 import argparse
 
@@ -33,14 +31,32 @@ proxy = None
 timeout = 10
 
 
-async def task_wrapper(sem, url: str, proxy: str = None) -> Dict[str, Any]:
-    async with sem:  # 使用信号量限制并发
-        # 设置每个任务设置10秒的超时时间
+async def producer(queue: asyncio.Queue, url_list: list, semaphore: asyncio.Semaphore):
+    for scan_url in url_list:
+        log.debug(f"正在扫描：{scan_url}")
+        await queue.put(scan_url)
+    await queue.put(None)  # 用于标记队列结束的值
+
+
+async def consumer(queue: asyncio.Queue, semaphore: asyncio.Semaphore, bar):
+    while True:
+        scan_url = await queue.get()
+        if scan_url is None:
+            return
         try:
-            return await asyncio.wait_for(BackupRequests(url=url, proxy=proxy).run(), 10)
+            async with semaphore:  # 使用信号量限制并发
+                res = await asyncio.wait_for(BackupRequests(url=scan_url, proxy=proxy).run(), timeout)
+                if res:
+                    cprint(
+                        f'[{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}] SUCCESS 成功扫描到备份文件，备份文件地址:{res.get("url")}，备份文件大小:{res.get("size")}',
+                        'green')
+                    data = f"地址：{res.get('url')}\t文件大小：{res.get('size')}"
+                    Output(outfile).write_to_file(data)
         except asyncio.TimeoutError:
-            log.debug(f"任务超时: {url}")
-            return {}
+            log.debug(f"任务超时: {scan_url}")
+        finally:
+            bar()  # 更新进度
+            queue.task_done()
 
 
 async def scan(url_list: list):
@@ -51,21 +67,20 @@ async def scan(url_list: list):
     """
     # 使用 Semaphore 控制并发
     semaphore = asyncio.Semaphore(max_threads)
+    queue = asyncio.Queue()
     with alive_bar(len(url_list)) as bar:
-        tasks = []
-        for scan_url in url_list:
-            log.debug(f"正在扫描：{scan_url}")
-            tasks.append(asyncio.create_task(task_wrapper(sem=semaphore, url=scan_url, proxy=proxy)))
-        for task in asyncio.as_completed(tasks):
-            res = await task
-            bar()  # 更新进度
-            log.debug(f'结果 {res}')
-            if res:
-                cprint(
-                    f'[{time.strftime("%Y-%m-%d %H:%M:%S", time.localtime())}] SUCCESS 成功扫描到备份文件，备份文件地址:{res.get("url")}，备份文件大小:{res.get("size")}',
-                    'green')
-                data = f"地址：{res.get('url')}\t文件大小：{res.get('size')}"
-                Output(outfile).write_to_file(data)
+        # 启动生产者和消费者任务
+        producer_task = asyncio.create_task(producer(queue, url_list, semaphore))
+        consumer_tasks = [asyncio.create_task(consumer(queue, semaphore, bar)) for _ in range(max_threads)]
+        # 等待生产者任务完成
+        await producer_task
+        # 等待队列中的所有项目被处理
+        await queue.join()
+        # 取消消费者任务
+        for task in consumer_tasks:
+            task.cancel()
+        # 等待所有消费者任务取消完成
+        await asyncio.gather(*consumer_tasks, return_exceptions=True)
 
 
 def get_backup_dict(url: str):
