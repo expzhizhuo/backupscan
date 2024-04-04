@@ -141,3 +141,4 @@ if __name__ == '__main__':
     # 使用 Semaphore 控制并发
     semaphore = asyncio.Semaphore(10)
     loop.run_until_complete(test_aiohttp(semaphore))
+    loop.close()

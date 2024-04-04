@@ -122,6 +122,7 @@ def main(url, file):
     log.info(f"产生任务{len(url_list)}个")
     loop = asyncio.get_event_loop()
     result = loop.run_until_complete(scan(url_list=url_list))
+    loop.close()
     return result
 
 
