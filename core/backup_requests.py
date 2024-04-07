@@ -26,7 +26,7 @@ warnings.filterwarnings('ignore', category=InsecureRequestWarning)
 class BackupRequests:
     def __init__(self, url: str, proxy: str = None, timeout: int = None):
         """
-        初始化配置信息
+        初始化配置信息，其中代理使用格式为http://username:password@yourproxy:port
         :param url:url
         :param proxy:代理信息
         :param timeout:请求超时时间
